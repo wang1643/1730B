@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/echarts.min.js"></script>
+    <script src="js/china.js"></script>
+    <style>
+        *{
+            padding:0;
+            margin:0;
+        }
+        html,body{
+            height:100%;
+            background: #30281d;
+        }
+        #main1,#main2{
+            width:70%;
+            height:80%;
+            margin: 0 auto;
+        }
+        #box{
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #box span{
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        #box span.main{
+            display: block;
+        }
+        .title{
+            overflow: hidden;
+            position: absolute;
+            top: 60px;
+            left: 100px;
+            z-index: 99;
+        }
+        .title span{
+            display: inline-block;
+            border: 1px solid #ccb281;
+            float: left;
+            width: 100px;
+            height: 40px;
+            font-size: 20px;
+            text-align: center;
+            line-height: 40px;
+            color: #ccb281;
+            cursor:pointer;
+        }
+        .title span.select{
+            color: #fff;
+            background: red;
+        }
+    </style>
+</head>
+<body>
+<div class="title" id="title">
+    <span class="select">省份</span>
+    <span>城市</span>
+</div>
+<div id="box">
+    <span class="main" id="spa"><div id="main1"></div></span>
+    <span><div id="main2"></div></span>
+</div>
+<script>
+    var title=document.getElementById("title");
+    var spans=title.getElementsByTagName("span");
+    var box=document.getElementById("box");
+    var sp=box.getElementsByTagName("span");
+
+    for(var i=0;i<spans.length;i++){
+        spans[i].onclick=function(){
+            for(var j=0;j<spans.length;j++){
+                if(this==spans[j]){
+                    spans[j].className="select";
+                    sp[j].className="main";
+                }else{
+                    spans[j].className="";
+                    sp[j].className="";
+                }
+            }
+        }
+    }
+    var myChart1 = echarts.init(document.getElementById('main1'));
+    var arr=[];
+    $.ajax({
+        type:"get",
+        url:"json/provence.json",
+        dataType:"json",
+        success:function (data) {
+            $.each(data.data,function (index,item) {
+                arr.push({
+                    name:data.data[index].name,
+                    value:data.data[index].count
+                })
+            });
+
+            var option1 = {
+//        title: {
+//            text: 'iphone销量',
+//            subtext: '纯属虚构',
+//
+//        },
+                tooltip: {
+                    trigger: 'item'
+                },
+//        legend: {
+//            orient: 'vertical',
+//            left: 'left',
+//            data:['iphone3','iphone4','iphone5']
+//        },
+                visualMap: {
+                    min: 0,
+                    max: 3000,
+                    left: 'left',
+                    top: 'bottom',
+                    text: ['高','低'],           // 文本，默认为数值文本
+                    calculable: true,
+                    textStyle:{
+                        color:'#fff'
+                    }
+                },
+                series: [
+                    {
+                        name: '转载量',
+                        type: 'map',
+                        mapType: 'china',
+                        roam: false,
+                        //图形文本显示
+                        label: {
+                            normal: {
+                                show: false
+                            },
+                            emphasis: {
+                                show: false
+                            }
+                        },
+                        data:arr
+                    }
+                ]
+            };
+            myChart1.setOption(option1);
+        }
+    });
+
+
+    function move(){
+        var myChart2 = echarts.init(document.getElementById('main2'));
+        $.ajax({
+            type:"get",
+            url:"json/citys.json",
+            dataType:"json",
+            success:function (da) {
+                console.log(da);
+                var geoCoordMap = {};
+                var data = [];
+                var arr1=[];
+                $.each(da.data,function (index,item) {
+                    data.push({
+                        name:item.name,
+                        value:item.count
+                    });
+                    geoCoordMap={name:item.name,value:[item.longitude,item.latitude,item.count]};
+                    arr1.push(geoCoordMap);
+                });
+                console.log(arr1);
+                var convertData = function (data) {
+                    var res = [];
+                    for (var i = 0; i < data.length; i++) {
+                        var geoCoord = geoCoordMap[data[i].name];
+                        console.log(geoCoord);
+                        if (geoCoord) {
+                            res.push({
+                                name: data[i].name,
+                                value: geoCoord.concat(data[i].value)
+                            });
+                        }
+                    }
+                    return res;
+                };
+
+                var option = {
+                    backgroundColor: '#302a1e',
+                    title: {
+                        text: '全国主要城市空气质量',
+                        subtext: 'data from PM25.in',
+                        sublink: 'http://www.pm25.in',
+                        left: 'center',
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    tooltip : {
+                        trigger: 'item'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        y: 'bottom',
+                        x:'right',
+                        data:['pm2.5'],
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    geo: {
+                        map: 'china',
+                        label: {
+                            emphasis: {
+                                show: false
+                            }
+                        },
+                        roam: true,
+                        itemStyle: {
+                            normal: {
+                                areaColor: '#4a3d2c',
+                                borderColor: '#111'
+                            },
+                            emphasis: {
+                                areaColor: '#2a333d'
+                            }
+                        }
+                    },
+                    series : [
+                        {
+                            name: 'pm2.5',
+                            type: 'scatter',
+                            coordinateSystem: 'geo',
+                            data: convertData(data),
+                            symbolSize: function (val) {
+                                return val[2] / 10;
+                            },
+                            label: {
+                                normal: {
+                                    formatter: '{b}',
+                                    position: 'right',
+                                    show: false
+                                },
+                                emphasis: {
+                                    show: true
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#ddb926'
+                                }
+                            }
+                        },
+                        {
+                            name: 'Top 5',
+                            type: 'effectScatter',
+                            coordinateSystem: 'geo',
+                            data: convertData(data.sort(function (a, b) {
+                                return b.value - a.value;
+                            }).slice(0, 6)),
+                            symbolSize: function (val) {
+                                return val[2] / 10;
+                            },
+                            showEffectOn: 'render',
+                            rippleEffect: {
+                                brushType: 'stroke'
+                            },
+                            hoverAnimation: true,
+                            label: {
+                                normal: {
+                                    formatter: '{b}',
+                                    position: 'right',
+                                    show: true
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#f4e925',
+                                    shadowBlur: 10,
+                                    shadowColor: '#333'
+                                }
+                            },
+                            zlevel: 1
+                        }
+                    ]
+                };
+                myChart2.setOption(option);
+            }
+        })
+    }
+    move();
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/echarts.min.js"></script>
+    <style>
+        *{
+            padding:0;
+            margin:0;
+        }
+        html,body{
+            height:100%;
+            background: black;
+        }
+        #main{
+            width:100%;
+            height:100%;
+        }
+    </style>
+</head>
+<body>
+<div id="main"></div>
+<script>
+    $(function () {
+        // 基于准备好的dom，初始化echarts实例
+//        app.title = '折柱混合';
+        var riqi=[],zhuan=[],yuan=[],lu=[];
+        $.ajax({
+            type:"get",
+            url:"json/fgl.json",
+            dataType:"json",
+            success:function(data){
+                console.log(data);
+                var myChart = echarts.init(document.getElementById('main'));
+//                console.log(option.xAxis);
+                $.each(data.data,function(index,item){
+                    riqi.push(item.cdate.substr(5));
+                    zhuan.push(item.ReprintCount);
+                    yuan.push(item.OriginalCount);
+                    lu.push(item.originalrate.substring(0,5));
+                });
+
+                var option = {
+                    title:{
+                        text:"分析图表",
+                        subtext:"2018年1月",
+                        textStyle:{
+                            color:"#fff"
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            crossStyle: {
+                                color: '#999'
+                            }
+                        }
+                    },
+//                    toolbox: {
+//                        feature: {
+//                            dataView: {show: true, readOnly: false},
+//                            magicType: {show: true, type: ['line', 'bar']},
+//                            restore: {show: true},
+//                            saveAsImage: {show: true}
+//                        }
+//                    },
+                    legend: {
+                        data:['转载量','原创量','原创率(%)'],
+                        textStyle:{
+                            color:"#fff"
+                        },
+                        top:15,
+                        itemWidth:15
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            data: riqi,
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            axisLabel:{
+                                show:"true",
+                                rotate:45,
+                                color:"#fff"
+                            }
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value',
+//                    name: '水量',
+//                            min: 0,
+//                            max: 25000,
+//                            interval: 5000,
+                    axisLabel: {
+                        color:"#fff"
+                    }
+                        },
+                        {
+                            type: 'value',
+//                    name: '温度',
+//                            min: 0,
+//                            max: 30,
+//                            interval: 5,
+                            axisLabel: {
+                                color:"#fff"
+                            }
+                        },
+                    ],
+                    dataZoom: [{
+                        type: 'inside',
+                        start: 0,
+                        end: 100,
+
+                    }, {
+                        start: 0,
+                        end: 10,
+                        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '50%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        },
+                        height:10,
+                        bottom:5
+                    }],
+                    series: [
+                        {
+                            name:'转载量',
+                            type:'bar',
+                            stack:"aa",
+                            itemStyle:{
+                                barBorderRadius:10,
+                                color:"yellow"
+                            },
+                            barWidth:10,
+                            data:zhuan
+                        },
+                        {
+                            name:'原创量',
+                            type:'bar',
+                            stack:"aa",
+                            itemStyle:{
+                                barBorderRadius:10
+                            },
+                            barMaxWidth:10,
+                            data:yuan
+                        },
+                        {
+                            name:'原创率(%)',
+                            type:'line',
+                            itemStyle:{
+                                color:"blue"
+                            },
+                            yAxisIndex: 1,
+                            data:lu
+                        }
+                    ]
+                };
+                console.log(riqi);
+                myChart.setOption(option);
+            }
+        });
+//        var str=[].slice().call(option.xAxis[0].data);
+        // 使用刚指定的配置项和数据显示图表。
+
+    })
+</script>
+</body>
+</html>
